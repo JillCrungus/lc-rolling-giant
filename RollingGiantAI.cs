@@ -79,9 +79,7 @@ public class RollingGiantAI : EnemyAI {
 	  _rollingSFX.Play();
 	  
 	  isOutside = enemyType.isOutsideEnemy || enemyType.isDaytimeEnemy;
-	  if (isOutside) {
-		 allAINodes = GameObject.FindGameObjectsWithTag("OutsideAINode");
-	  }
+	  SetEnemyOutside(isOutside);
    }
 
    public void ResetValues() {
