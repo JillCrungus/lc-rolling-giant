@@ -742,32 +742,12 @@ public class RollingGiantAI : EnemyAI {
 
 	  return false;
    }
-   
-   // public bool HasLineOfSightToPosition(
-   //    PlayerControllerB playerControllerB,
-   //    Vector3 pos,
-   //    float width = 45f,
-   //    int range = 60,
-   //    float proximityAwareness = -1f)
-   // {
-   //    float num = Vector3.Distance(playerControllerB.transform.position, pos);
-   //    var b0 = num < (double)range;
-   //    var b1 = (Vector3.Angle(playerControllerB.playerEye.transform.forward, pos - playerControllerB.gameplayCamera.transform.position) < (double)width ||
-   //              num < (double)proximityAwareness);
-   //    var b2 = !Physics.Linecast(playerControllerB.playerEye.transform.position,
-   //       pos,
-   //       out var hit,
-   //       StartOfRound.Instance.collidersRoomDefaultAndFoliage,
-   //       QueryTriggerInteraction.Ignore);
-   //    LogInfo($"[HasLineOfSightToPosition::{NetworkHandler.AiType}] b0: {b0}, b1: {b1}, b2: {b2} ({hit.collider?.name})");
-   //    return b0 && b1 && b2;
-   // }
 
    private bool IsAgentOnNavMesh(GameObject agentObject) {
 	  var agentPosition = agentObject.transform.position;
 
 	  // Check for nearest point on navmesh to agent, within onMeshThreshold
-	  if (NavMesh.SamplePosition(agentPosition, out var hit, 3, NavMesh.AllAreas)) {
+	  if (NavMesh.SamplePosition(agentPosition, out NavMeshHit hit, 3, NavMesh.AllAreas)) {
 		 // Check if the positions are vertically aligned
 		 if (Mathf.Approximately(agentPosition.x, hit.position.x)
 			 && Mathf.Approximately(agentPosition.z, hit.position.z)) {
