@@ -23,7 +23,7 @@ public class RollingGiantAI : EnemyAI {
    private NetworkVariable<float> _waitTimer = new();
    private NetworkVariable<float> _moveTimer = new();
    private NetworkVariable<float> _lookTimer = new();
-   private NetworkVariable<float> _agroTimer = new();
+   private NetworkVariable<float> _aggroTimer = new();
 
    private float _timeSinceHittingPlayer;
    private bool _wantsToChaseThisClient;
@@ -87,7 +87,7 @@ public class RollingGiantAI : EnemyAI {
 		 _waitTimer.Value = 0;
 		 _moveTimer.Value = 0;
 		 _lookTimer.Value = 0;
-		 _agroTimer.Value = 0;
+		 _aggroTimer.Value = 0;
 		 SwitchToBehaviourState(0);
 		 EndChasingPlayer_ClientRpc();
 		 ResetValues_ClientRpc();
@@ -257,7 +257,7 @@ public class RollingGiantAI : EnemyAI {
 			   if (_aiType is not RollingGiantAiType.OnceSeenAgroAfterTimer) {
 				  _isAgro = false;
 				  if (IsOwner) {
-					 _agroTimer.Value = 0;
+					 _aggroTimer.Value = 0;
 				  }
 			   }
 			   if (IsOwner) {
@@ -291,7 +291,7 @@ public class RollingGiantAI : EnemyAI {
 			   if (_aiType is not RollingGiantAiType.OnceSeenAgroAfterTimer) {
 				  _isAgro = false;
 				  if (IsOwner) {
-					 _agroTimer.Value = 0;
+					 _aggroTimer.Value = 0;
 				  }
 			   }
 			   if (IsOwner) {
@@ -362,7 +362,7 @@ public class RollingGiantAI : EnemyAI {
 				  }
 				  break;
 			   case RollingGiantAiType.LookingTooLongKeepsAgro:
-				  if (AmIBeingLookedAt(out _) && _agroTimer.Value < 1f) {
+				  if (AmIBeingLookedAt(out _) && _aggroTimer.Value < 1f) {
 					 _wasStopped = true;
 					 return;
 				  }
@@ -371,7 +371,7 @@ public class RollingGiantAI : EnemyAI {
 				  // ?
 				  break;
 			   case RollingGiantAiType.OnceSeenAgroAfterTimer:
-				  if (_isAgro && _agroTimer.Value > 0) {
+				  if (_isAgro && _aggroTimer.Value > 0) {
 					 _wasStopped = true;
 					 return;
 				  }
@@ -620,10 +620,10 @@ public class RollingGiantAI : EnemyAI {
 			   if (!_isAgro) {
 				  if (isLookedAt) {
 					 if (IsOwner) {
-						_agroTimer.Value += Time.deltaTime / _sharedAiSettings.lookTimeBeforeAgro;
+						_aggroTimer.Value += Time.deltaTime / _sharedAiSettings.lookTimeBeforeAgro;
 					 }
-					 LogInfo($"[Update::{NetworkHandler.AiType}] _agroTimer: {_agroTimer.Value}");
-					 if (_agroTimer.Value >= 1f) {
+					 LogInfo($"[Update::{NetworkHandler.AiType}] _agroTimer: {_aggroTimer.Value}");
+					 if (_aggroTimer.Value >= 1f) {
 						_isAgro = true;
 						LogInfo($"[Update::{NetworkHandler.AiType}] got agro");
 					 }
@@ -631,8 +631,8 @@ public class RollingGiantAI : EnemyAI {
 					 MoveDecelerate();
 				  } else {
 					 if (IsOwner) {
-						_agroTimer.Value = Mathf.Lerp(_agroTimer.Value, 0, Time.deltaTime / (_sharedAiSettings.lookTimeBeforeAgro * 1.5f));
-						LogInfo($"[Update::{NetworkHandler.AiType}] _agroTimer: {_agroTimer.Value}");
+						_aggroTimer.Value = Mathf.Lerp(_aggroTimer.Value, 0, Time.deltaTime / (_sharedAiSettings.lookTimeBeforeAgro * 1.5f));
+						LogInfo($"[Update::{NetworkHandler.AiType}] _agroTimer: {_aggroTimer.Value}");
 					 }
 
 					 MoveAccelerate();
@@ -660,18 +660,18 @@ public class RollingGiantAI : EnemyAI {
 					 _isAgro = true;
 					 LogInfo($"[Update::{NetworkHandler.AiType}] got agro");
 					 if (IsOwner) {
-						_agroTimer.Value = Mathf.Lerp(_sharedAiSettings.waitTimeMin, _sharedAiSettings.waitTimeMax, NextDouble());
+						_aggroTimer.Value = Mathf.Lerp(_sharedAiSettings.waitTimeMin, _sharedAiSettings.waitTimeMax, NextDouble());
 					 }
 					 MoveDecelerate();
 					 return;
 				  }
-			   } else if (_agroTimer.Value > 0) {
-				  LogInfo($"[Update::{NetworkHandler.AiType}] _agroTimer: {_agroTimer.Value}");
+			   } else if (_aggroTimer.Value > 0) {
+				  LogInfo($"[Update::{NetworkHandler.AiType}] _agroTimer: {_aggroTimer.Value}");
 				  if (IsOwner) {
-					 _agroTimer.Value -= Time.deltaTime;
+					 _aggroTimer.Value -= Time.deltaTime;
 				  }
 
-				  if (_agroTimer.Value <= 0) {
+				  if (_aggroTimer.Value <= 0) {
 					 LogInfo($"[Update::{NetworkHandler.AiType}] chasing time");
 				  }
 				  MoveDecelerate();
@@ -819,7 +819,7 @@ public class RollingGiantAI : EnemyAI {
    
    private void GenerateAgroTime() {
 	  if (!IsOwner) return;
-	  _agroTimer.Value = _sharedAiSettings.lookTimeBeforeAgro;
+	  _aggroTimer.Value = _sharedAiSettings.lookTimeBeforeAgro;
    }
    
    private void GenerateMoveTime() {
