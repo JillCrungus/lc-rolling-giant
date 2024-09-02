@@ -104,7 +104,7 @@ public class RollingGiantAI : EnemyAI {
    public override void DaytimeEnemyLeave() {
 	  base.DaytimeEnemyLeave();
 	  
-	  foreach (var renderer in transform.GetComponentsInChildren<Renderer>()) {
+	  foreach (Renderer renderer in transform.GetComponentsInChildren<Renderer>()) {
 		 if (renderer.name == "object_3") continue;
 		 renderer.sharedMaterial = Plugin.BlackAndWhiteMaterial;
 	  }
@@ -138,14 +138,14 @@ public class RollingGiantAI : EnemyAI {
 			   return;
 			}
 
-			foreach (var player in StartOfRound.Instance.allPlayerScripts) {
+			foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts) {
 			   if (player.isPlayerDead) continue;
 			   if (!player.IsSpawned) continue;
-			   if (isOutside == player.isInsideFactory) continue;
-			   if (!isOutside && !PlayerIsTargetable(player)) continue;
+			   if (isOutside == player.isInsideFactory) continue; //We're outside and the player isn't
+			   if (!isOutside && !PlayerIsTargetable(player)) continue; //We're inside but the player isn't targetable
 
-			   var distance = Vector3.Distance(transform.position, player.transform.position);
-			   var inRange = distance < (isOutside ? 90 : 30);
+			   float distance = Vector3.Distance(transform.position, player.transform.position);
+			   bool inRange = distance < (isOutside ? 90 : 30);
 			   if (!Physics.Linecast(transform.position + Vector3.up * 0.5f, player.gameplayCamera.transform.position, StartOfRound.Instance.collidersAndRoomMaskAndDefault) && inRange) {
 				  SwitchToBehaviourState(1);
 				  LogInfo($"[DoAIInterval::{NetworkHandler.AiType}] SwitchToBehaviourState(1), found {player?.playerUsername} at distance {distance}m");
@@ -156,8 +156,8 @@ public class RollingGiantAI : EnemyAI {
 			if (isOutside) {
 			   var closest = GetClosestPlayer();
 			   if (closest && !Physics.Linecast(transform.position + Vector3.up * 0.5f, closest.gameplayCamera.transform.position, StartOfRound.Instance.collidersAndRoomMaskAndDefault)) {
-				  var distance = Vector3.Distance(transform.position, closest.transform.position);
-				  var inRange = distance < (isOutside ? 90 : 30);
+				  float distance = Vector3.Distance(transform.position, closest.transform.position);
+				  bool inRange = distance < (isOutside ? 90 : 30);
 				  if (inRange) {
 					 targetPlayer = closest;
 					 SwitchToBehaviourState(1);
@@ -552,7 +552,7 @@ public class RollingGiantAI : EnemyAI {
 			return;
 		 }
 
-		 var isLookedAt = AmIBeingLookedAt(out _);
+		 bool isLookedAt = AmIBeingLookedAt(out _);
 		 if (IsOwner) {
 			if (isLookedAt) {
 			   _lookTimer.Value += Time.deltaTime;
@@ -574,6 +574,7 @@ public class RollingGiantAI : EnemyAI {
 			   // LogInfo($"[CalculateAgentSpeed::{NetworkHandler.AiType}] not looking at, {_lookTimer}sec");
 			   break;
 			case RollingGiantAiType.InverseCoilhead:
+			   //TODO: What's actually going on here?
 			   if (!isLookedAt && _isAggro) {
 				  if (CheckLineOfSightToAnyPlayer()) {
 					 MoveDecelerate();
@@ -647,7 +648,7 @@ public class RollingGiantAI : EnemyAI {
 				  if (isLookedAt) {
 					 _isAggro = true;
 					 MoveDecelerate();
-					 LogInfo($"[Update::{NetworkHandler.AiType}] got agro");
+					 LogInfo($"[Update::{NetworkHandler.AiType}] got aggro");
 					 return;
 				  }
 			   }
@@ -658,7 +659,7 @@ public class RollingGiantAI : EnemyAI {
 			   if (!_isAggro) {
 				  if (isLookedAt) {
 					 _isAggro = true;
-					 LogInfo($"[Update::{NetworkHandler.AiType}] got agro");
+					 LogInfo($"[Update::{NetworkHandler.AiType}] got aggro");
 					 if (IsOwner) {
 						_aggroTimer.Value = Mathf.Lerp(_sharedAiSettings.waitTimeMin, _sharedAiSettings.waitTimeMax, NextDouble());
 					 }
@@ -666,7 +667,7 @@ public class RollingGiantAI : EnemyAI {
 					 return;
 				  }
 			   } else if (_aggroTimer.Value > 0) {
-				  LogInfo($"[Update::{NetworkHandler.AiType}] _agroTimer: {_aggroTimer.Value}");
+				  LogInfo($"[Update::{NetworkHandler.AiType}] _aggroTimer: {_aggroTimer.Value}");
 				  if (IsOwner) {
 					 _aggroTimer.Value -= Time.deltaTime;
 				  }
@@ -699,39 +700,33 @@ public class RollingGiantAI : EnemyAI {
 	  agent.acceleration = 200;
    }
 
+	
+
    private bool AmIBeingLookedAt(out PlayerControllerB closestPlayer) {
-	  var players = StartOfRound.Instance.allPlayerScripts;
-	  var closestDistance = float.MaxValue;
+	  PlayerControllerB[] players = StartOfRound.Instance.allPlayerScripts;
+	  float closestDistance = float.MaxValue;
 	  closestPlayer = null;
 
-	  foreach (var player in players) {
+	  foreach (PlayerControllerB player in players) {
 		 if (!isOutside && !PlayerIsTargetable(player)) continue;
 		 if (player.isPlayerDead) continue;
 		 if (!player.IsSpawned) continue;
-		 // if (!PlayerIsTargetable(player, overrideInsideFactoryCheck: isOutside)) {
-		 //    // LogInfo($"[AmIBeingLookedAt::{NetworkHandler.AiType}] !PlayerIsTargetable({player?.playerUsername})");
-		 //    continue;
-		 // }
-		 // transform.position + Vector3.up * 1.6f
-		 
-		 if (player.HasLineOfSightToPosition(transform.position + Vector3.up * 1.6f, 68f)) {
-			var distance = Vector3.Distance(transform.position, player.transform.position);
-			// LogInfo($"[AmIBeingLookedAt::{NetworkHandler.AiType}] HasLineOfSightToPosition({player?.playerUsername}), distance: {distance}");
-			if (distance < closestDistance) {
-			   closestDistance = distance;
-			   closestPlayer = player;
-			}
-		 } else {
-			// LogInfo($"[AmIBeingLookedAt::{NetworkHandler.AiType}] !HasLineOfSightToPosition({player?.playerUsername})");
+		 if (!player.HasLineOfSightToPosition(transform.position + Vector3.up * 1.6f, 68f)) continue;
+
+		 float distance = Vector3.Distance(transform.position, player.transform.position);
+		 if (distance < closestDistance)
+		 {
+		 	closestDistance = distance;
+			closestPlayer = player;
 		 }
-	  }
+		}
 
 	  // LogInfo($"[AmIBeingLookedAt::{NetworkHandler.AiType}] closestPlayer: {closestPlayer?.playerUsername}");
 	  return closestPlayer;
    }
 
    private bool CheckLineOfSightTo(PlayerControllerB player) {
-	  return player && HasLineOfSightToPosition(player.gameplayCamera.transform.position, 68f);
+		return player && CheckLineOfSightForPosition(player.gameplayCamera.transform.position, 68f);
    }
    
    private bool CheckLineOfSightToAnyPlayer() {
