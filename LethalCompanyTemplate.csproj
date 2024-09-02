@@ -8,7 +8,6 @@
         <RunPostBuildEvent>Always</RunPostBuildEvent>
         <GameDir>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company</GameDir>
         <RootNamespace>RollingGiant</RootNamespace>
-        <NetcodePatcherDir>C:\Users\nomno\Documents\Modding\NetcodePatcher-2.4.0</NetcodePatcherDir>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -49,10 +48,10 @@
     </ItemGroup>
     
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-      <Exec Command="rmdir plugin/BepInEx/ /s /q&#xA;mkdir -p plugin/BepInEx/plugins/RollingGiant&#xA;xcopy /y README.md plugin" />
+      <Exec Command="rmdir plugin\BepInEx\ /s /q&#xA;mkdir -p plugin\BepInEx\plugins\RollingGiant&#xA;xcopy /y README.md plugin" />
     </Target>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="cd $(NetcodePatcherDir)&#xA;NetcodePatcher.dll $(TargetDir) deps/&#xA;xcopy /y /d &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(GameDir)\BepInEx\plugins\RollingGiant\&quot;&#xA;xcopy /y /d &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(ProjectDir)\plugin\BepInEx\plugins\RollingGiant\&quot;&#xA;xcopy /y /d &quot;$(GameDir)\BepInEx\plugins\RollingGiant\$(TargetName)&quot; &quot;$(ProjectDir)\plugin\BepInEx\plugins\RollingGiant\&quot;" />
-    </Target>
+    <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
+		<Exec Command="netcode-patch -nv 1.5.2 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
+	</Target>
 </Project>
