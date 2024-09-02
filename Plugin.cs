@@ -24,7 +24,7 @@ namespace RollingGiant;
 public class Plugin : BaseUnityPlugin {
     public const string PluginGuid = "nomnomab.rollinggiant";
     public const string PluginName = "Rolling Giant";
-    public const string PluginVersion = "2.5.2";
+    public const string PluginVersion = "2.6.0";
     
     private const int SaveFileVersion = 11;
 
@@ -60,28 +60,31 @@ public class Plugin : BaseUnityPlugin {
         
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
         
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        Logger.LogInfo($"Plugin RollingGiant is loaded!");
     }
 
-    private void LoadNetWeaver() {
-        var types = Assembly.GetExecutingAssembly().GetTypes();
-        foreach (var type in types) {
-            // ? prevents the compatibility layer from crashing the plugin loading
-            try {
-                var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                foreach (var method in methods) {
-                    var attributes = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
-                    if (attributes.Length > 0) {
-                        method.Invoke(null, null);
-                    }
-                }
-            } catch {
-                Log.LogWarning($"NetWeaver is skipping {type.FullName}");
-            }
-        }
-    }
+	private void LoadNetWeaver()
+	{
+		foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+		{
+			try
+			{
+				foreach (MethodInfo method in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic))
+				{
+					if (method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false).Length != 0)
+					{
+						method.Invoke(null, null);
+					}
+				}
+			}
+			catch
+			{
+				Plugin.Log.LogWarning("NetWeaver is skipping " + type.FullName);
+			}
+		}
+	}
 
-    private void LoadSettings() {
+	private void LoadSettings() {
         CustomConfig = new CustomConfig(base.Config);
     }
 
