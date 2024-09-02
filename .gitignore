@@ -2,3 +2,5 @@
 obj
 thirdparty
 plugin
+*.user
+/.vs/LethalCompanyTemplate
